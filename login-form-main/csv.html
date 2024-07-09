@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Data Table</title>
+    <style>
+        body {
+            background-color: #f0e6f6;
+            font-family: Arial, sans-serif;
+        }
+        input[type="file"], button {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #6a0dad;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #5a0caf;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #e6ccf2;
+            color: #6a0dad;
+        }
+        .delete-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .delete-btn:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="csvFileInput" accept=".csv" multiple />
+    <button onclick="loadCSV()">Load CSV</button>
+    <table id="csvTable">
+        <thead></thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        function loadCSV() {
+            const input = document.getElementById('csvFileInput');
+            const files = input.files;
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const csvData = event.target.result;
+                    saveCSVData(file.name, csvData);
+                    displayCSV();
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        function saveCSVData(fileName, csvData) {
+            let csvFilesData = JSON.parse(localStorage.getItem('csvFilesData') || '{}');
+            csvFilesData[fileName] = csvData;
+            localStorage.setItem('csvFilesData', JSON.stringify(csvFilesData));
+        }
+
+        function displayCSV() {
+            const csvFilesData = JSON.parse(localStorage.getItem('csvFilesData') || '{}');
+            const table = document.getElementById('csvTable');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            let firstFile = true;
+
+            Object.entries(csvFilesData).forEach(([fileName, csvData]) => {
+                const rows = csvData.split('\n');
+
+                rows.forEach((row, rowIndex) => {
+                    const cols = row.split(',');
+
+                    if (rowIndex === 0 && firstFile) {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-row-index', rowIndex);
+                        tr.setAttribute('data-file-name', fileName);
+                        cols.forEach(col => {
+                            const th = document.createElement('th');
+                            th.textContent = col.trim();
+                            tr.appendChild(th);
+                        });
+                        const thDelete = document.createElement('th');
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = 'Delete';
+                        deleteBtn.classList.add('delete-btn');
+                        deleteBtn.onclick = function() {
+                            const fileName = tr.getAttribute('data-file-name');
+                            tr.remove();
+                            deleteRowFromStorage(fileName, rowIndex);
+                            displayCSV();
+                        };
+                        thDelete.appendChild(deleteBtn);
+                        tr.appendChild(thDelete);
+                        thead.appendChild(tr);
+                        firstFile = false;
+                    } else if (row.trim()) {
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-row-index', rowIndex);
+                        tr.setAttribute('data-file-name', fileName);
+                        cols.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.trim();
+                            tr.appendChild(td);
+                        });
+                        const tdDelete = document.createElement('td');
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = 'Delete';
+                        deleteBtn.classList.add('delete-btn');
+                        deleteBtn.onclick = function() {
+                            const fileName = tr.getAttribute('data-file-name');
+                            const rowIndex = tr.getAttribute('data-row-index');
+                            tr.remove();
+                            deleteRowFromStorage(fileName, rowIndex);
+                            displayCSV();
+                        };
+                        tdDelete.appendChild(deleteBtn);
+                        tr.appendChild(tdDelete);
+                        tbody.appendChild(tr);
+                    }
+                });
+            });
+        }
+
+        function deleteRowFromStorage(fileName, rowIndex) {
+            const csvFilesData = JSON.parse(localStorage.getItem('csvFilesData') || '{}');
+            const rows = csvFilesData[fileName].split('\n');
+            const updatedRows = rows.filter((row, index) => index != rowIndex).join('\n');
+            if (updatedRows) {
+                csvFilesData[fileName] = updatedRows;
+            } else {
+                delete csvFilesData[fileName];
+            }
+            localStorage.setItem('csvFilesData', JSON.stringify(csvFilesData));
+        }
+
+        window.onload = function() {
+            displayCSV();
+        };
+    </script>
+</body>
+</html>

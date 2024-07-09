@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lessons Learnt Table</title>
+    <style>
+         body {
+        background-color: #f1e6fa; 
+        font-family: Arial, sans-serif; 
+    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .hidden {
+            display: none;
+        }
+        .multiselect {
+            position: relative;
+            display: inline-block;
+        }
+        .selectBox {
+            position: relative;
+        }
+        .selectBox select {
+            width: 100%;
+            font-weight: bold;
+        }
+        .overSelect {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+        .checkboxes {
+            display: none;
+            border: 1px #dadada solid;
+        }
+        .checkboxes label {
+            display: block;
+        }
+        .checkboxes label:hover {
+            background-color: #1e90ff;
+        }
+    </style>
+    <script>
+        function showCheckboxes() {
+            var checkboxes = document.getElementById("checkboxes");
+            if (!checkboxes.style.display || checkboxes.style.display === "none") {
+                checkboxes.style.display = "block";
+            } else {
+                checkboxes.style.display = "none";
+            }
+        }
+
+        function filterTable() {
+            const selectedOptions = Array.from(document.querySelectorAll('input[name="category"]:checked'));
+            const selectedCategories = selectedOptions.map(option => option.value);
+
+            const headers = document.querySelectorAll('th');
+            const rows = document.querySelectorAll('tbody tr');
+
+            // Reset all headers and cells to hidden except Title, Description, Mitigation, and Remarks
+            headers.forEach((header, index) => {
+                if ([0, 1, 7, 8].includes(index)) {
+                    header.classList.remove('hidden');
+                } else {
+                    header.classList.add('hidden');
+                }
+            });
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    if ([0, 1, 7, 8].includes(index)) {
+                        cell.classList.remove('hidden');
+                    } else {
+                        cell.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Show selected categories
+            selectedCategories.forEach(category => {
+                const index = getCategoryIndex(category);
+
+                headers[index].classList.remove('hidden');
+                rows.forEach(row => {
+                    row.querySelectorAll('td')[index].classList.remove('hidden');
+                });
+            });
+        }
+
+        function getCategoryIndex(category) {
+            const indices = {
+                'Category': 2,
+                'Customer': 3,
+                'Project Type': 4,
+                'Industry': 5,
+                'PLM Tool': 6
+            };
+            return indices[category];
+        }
+    </script>
+</head>
+<body>
+    <h1>Lessons Learnt</h1>
+    <div class="multiselect">
+        <div class="selectBox" onclick="showCheckboxes()">
+            <select>
+                <option>Select categories</option>
+            </select>
+            <div class="overSelect"></div>
+        </div>
+        <div id="checkboxes" class="checkboxes">
+            <label><input type="checkbox" name="category" value="Category" onchange="filterTable()"> Category</label>
+            <label><input type="checkbox" name="category" value="Customer" onchange="filterTable()"> Customer</label>
+            <label><input type="checkbox" name="category" value="Project Type" onchange="filterTable()"> Project Type</label>
+            <label><input type="checkbox" name="category" value="Industry" onchange="filterTable()"> Industry</label>
+            <label><input type="checkbox" name="category" value="PLM Tool" onchange="filterTable()"> PLM Tool</label>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th class="hidden">Category</th>
+                <th class="hidden">Customer</th>
+                <th class="hidden">Project Type</th>
+                <th class="hidden">Industry</th>
+                <th class="hidden">PLM Tool</th>
+                <th>Mitigation</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Devops usage</td>
+                <td>All Devops items created should have start and target and assignee while creating the task itself</td>
+                <td class="hidden">Project Management</td>
+                <td class="hidden">Marelli</td>
+                <td class="hidden">Implementation</td>
+                <td class="hidden">Automotive</td>
+                <td class="hidden">Teamcenter</td>
+                <td>Usage of power Bi or dashboard to highlight such tasks</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Customer task assignment</td>
+                <td>Task assigned to customer without end date can cause delays</td>
+                <td class="hidden">Project Management</td>
+                <td class="hidden">Marelli</td>
+                <td class="hidden">Implementation</td>
+                <td class="hidden">Automotive</td>
+                <td class="hidden">Teamcenter</td>
+                <td>Assign end dates while assignment itself</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
